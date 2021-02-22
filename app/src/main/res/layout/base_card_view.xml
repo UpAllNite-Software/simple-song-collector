@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
+
+    app:cardCornerRadius="5dp">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:padding="5dp"
+            android:theme="@style/Theme.SimpleSongFinder.CardView"
+            android:orientation="horizontal">
+
+            <RelativeLayout
+                android:layout_width="180dp"
+                android:layout_height="130dp"
+                >
+
+                <com.google.android.exoplayer2.ui.PlayerView
+                    android:id="@+id/video_player"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/black"
+                    >
+                </com.google.android.exoplayer2.ui.PlayerView>
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/thumbnail"
+                    android:background="@android:color/black"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                </androidx.appcompat.widget.AppCompatImageView>
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/video_player_play"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_centerInParent="true"
+                    android:src="@android:drawable/ic_media_play"
+                    android:alpha=".7"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:background="@android:color/transparent">
+
+                </androidx.appcompat.widget.AppCompatImageButton>
+
+                <com.open.simplesongcollector.LevelMeterView
+                    android:id="@+id/level_meter"
+                    android:layout_width="46dp"
+                    android:layout_height="36dp"
+                    android:layout_centerInParent="true"
+                    android:alpha=".9"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:background="@android:color/transparent">
+
+                </com.open.simplesongcollector.LevelMeterView>
+
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/video_player_loading"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:layout_centerInParent="true"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:indeterminate="true"
+                    android:background="@android:color/transparent"
+                    android:visibility="invisible"
+                    style="@style/Widget.App.CircularProgressIndicator"
+                    >
+
+                </com.google.android.material.progressindicator.CircularProgressIndicator>
+
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/duration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingRight="10dp"
+                    android:paddingBottom="3dp"
+                    android:layout_alignBottom="@id/thumbnail"
+                    android:layout_alignRight="@id/thumbnail"
+                    android:text="2:34"
+                    android:textSize="18sp"
+                    android:background="@android:color/transparent"
+                    android:alpha=".7"
+                    android:textColor="@color/white">
+
+                </androidx.appcompat.widget.AppCompatTextView>
+
+
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:singleLine="false"
+                android:layout_weight="1"
+                android:layout_margin="5dp"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                >
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/download_button"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:background="@android:color/transparent"
+                android:scaleType="fitCenter" />
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/download_progress"
+                    android:visibility="invisible"
+                    android:layout_height="35dp"
+                    android:layout_width="35dp"
+                    app:trackThickness="3dp"
+                    app:trackColor="@android:color/secondary_text_dark"
+                    style="@style/Widget.App.CircularProgressIndicator"
+                    android:indeterminate="false">
+
+                </com.google.android.material.progressindicator.CircularProgressIndicator>
+
+            </RelativeLayout>
+
+
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+
+
+</androidx.cardview.widget.CardView>

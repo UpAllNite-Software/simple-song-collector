@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Simple Song Collector</string>
+    <string name="recaptcha_cookies_key">recaptcha_cookies_key</string>
+    <string name="youtube_restricted_mode_enabled" translatable="false">youtube_restricted_mode_enabled</string>
+    <string name="action_songs">Songs</string>
+    <string name="action_videos">Videos</string>
+</resources>

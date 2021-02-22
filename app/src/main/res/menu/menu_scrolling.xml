@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.open.simplesongcollector.MainActivity">
+    <group
+        android:id="@+id/search_filter_group"
+        android:checkableBehavior="single">
+
+    <item
+        android:id="@+id/action_songs"
+        android:title="@string/action_songs"
+        app:itemIconTint="@color/colorTint"
+         />
+    <item
+        android:id="@+id/action_videos"
+        android:title="@string/action_videos"
+        app:itemIconTint="@color/colorTint"
+         />
+    </group>
+
+</menu>

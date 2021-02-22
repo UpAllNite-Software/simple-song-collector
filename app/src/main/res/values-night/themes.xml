@@ -1,0 +1,45 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.SimpleSongFinder" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary</item>
+        <item name="colorOnPrimary">@color/onPrimary</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">@android:color/black</item>
+        <item name="android:textColorSecondary">@android:color/white</item>
+        <!-- Customize your theme here. -->
+    </style>
+
+    <style name="Theme.SimpleSongFinder.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.SimpleSongFinder.ActionBar" parent="Theme.MaterialComponents.DayNight">
+        <item name="android:background">@color/primary</item>
+    </style>
+
+
+    <style name="Theme.SimpleSongFinder.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.SimpleSongFinder.PopupOverlay" parent="ThemeOverlay.AppCompat.Light">
+        <item name="colorAccent">@color/colorTint</item>
+        <item name="colorControlNormal">@color/white</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="Theme.SimpleSongFinder.SearchView" parent="Theme.SimpleSongFinder">
+        <item name="android:editTextColor">@color/white</item>
+        <item name="android:textColorHint">@color/lightGray</item>
+        <item name="android:tint">@color/colorTint</item>
+        <item name="android:background">@color/black</item>
+    </style>
+
+    <style name="Theme.SimpleSongFinder.CardView" parent="Theme.SimpleSongFinder">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+
+    <color name="lightGray">#FFAAAAAA</color>
+</resources>

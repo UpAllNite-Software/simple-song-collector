@@ -1,0 +1,8 @@
+include  ':app'
+rootProject.name = "Simple Song Collector"
+
+//includeBuild('../NewPipeExtractor') {
+//    dependencySubstitution {
+//        substitute module('com.github.TeamNewPipe:NewPipeExtractor') with project(':extractor')
+//    }
+//}

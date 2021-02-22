@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:theme="@style/Theme.SimpleSongFinder.ActionBar"
+    android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:popupTheme="@style/Theme.SimpleSongFinder.PopupOverlay"
+        />
+
+    <RelativeLayout
+        android:id="@+id/search_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/toolbar"
+        android:padding="@dimen/activity_horizontal_margin">
+
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/search_view"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:iconifiedByDefault="false"
+            android:theme="@style/Theme.SimpleSongFinder.SearchView"
+            app:queryHint="Enter song title or artist keywords to search..." />
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/search_layout">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="@dimen/text_margin"
+            />
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/search_result_loading"
+            android:layout_width="100dp"
+            android:layout_centerInParent="true"
+            android:layout_height="100dp"
+            android:background="@android:color/transparent"
+            app:trackThickness="6dp"
+            app:indicatorSize="90dp"
+            android:visibility="invisible"
+            style="@style/Widget.App.CircularProgressIndicator"
+            android:indeterminate="true">
+
+        </com.google.android.material.progressindicator.CircularProgressIndicator>
+
+    </RelativeLayout>
+
+
+</RelativeLayout>
