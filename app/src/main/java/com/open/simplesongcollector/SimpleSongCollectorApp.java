@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import androidx.multidex.MultiDexApplication;
+
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.downloader.Downloader;
 import org.schabi.newpipe.extractor.localization.ContentCountry;
@@ -13,10 +15,13 @@ import org.schabi.newpipe.DownloaderImpl;
 
 import java.util.Locale;
 
-import io.reactivex.exceptions.UndeliverableException;
-import io.reactivex.plugins.RxJavaPlugins;
+import io.reactivex.rxjava3.exceptions.UndeliverableException;
+import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 
-public class SimpleSongCollectorApp extends Application
+//import io.reactivex.exceptions.UndeliverableException;
+//import io.reactivex.plugins.RxJavaPlugins;
+
+public class SimpleSongCollectorApp extends MultiDexApplication
 {
     private static SimpleSongCollectorApp INSTANCE = null;
 

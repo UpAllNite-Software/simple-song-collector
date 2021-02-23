@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.RecyclerView;
@@ -141,7 +142,7 @@ public class SearchResultViewHolder extends RecyclerView.ViewHolder
             button.setImageResource(R.drawable.downloaded);
             button.setVisibility(View.VISIBLE);
             button.setEnabled(false);
-            button.setImageTintList(ColorStateList.valueOf(Color.BLACK));
+            button.setColorFilter(Color.BLACK);
         }
         else if (searchResult.downloadtask!=null)
         {
@@ -171,7 +172,7 @@ public class SearchResultViewHolder extends RecyclerView.ViewHolder
                 button.setEnabled(true);
                 button.setVisibility(View.VISIBLE);
                 button.setImageResource(R.drawable.download);
-                button.setImageTintList(AppCompatResources.getColorStateList(cardView.getContext(),R.color.colorTint));
+                button.setColorFilter(ContextCompat.getColor(cardView.getContext(),R.color.colorTint));
         }
     }
 }

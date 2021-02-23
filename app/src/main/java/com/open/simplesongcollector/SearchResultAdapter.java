@@ -19,8 +19,11 @@ import org.schabi.newpipe.extractor.search.SearchInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.reactivex.Observable;
-import io.reactivex.subjects.PublishSubject;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.PublishSubject;
+
+//import io.reactivex.Observable;
+//import io.reactivex.subjects.PublishSubject;
 
 public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultViewHolder>
 {

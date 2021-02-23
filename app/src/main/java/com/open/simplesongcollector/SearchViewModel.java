@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModel;
 
 import org.json.JSONObject;
 
-import io.reactivex.disposables.CompositeDisposable;
+//import io.reactivex.disposables.CompositeDisposable;
 import org.schabi.newpipe.extractor.search.SearchInfo;
 import androidx.annotation.NonNull;
 import org.schabi.newpipe.util.ExtractorHelper;
@@ -17,9 +17,14 @@ import com.open.simplesongcollector.util.Globals;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
+//import io.reactivex.android.schedulers.AndroidSchedulers;
+//import io.reactivex.disposables.Disposable;
+//import io.reactivex.schedulers.Schedulers;
 
 public class SearchViewModel extends ViewModel
 {

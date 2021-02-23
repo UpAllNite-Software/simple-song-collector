@@ -249,7 +249,7 @@ public class DownloadTask
         contentValues.put(MediaStore.MediaColumns.TITLE,title);
         if (artist!=null)
         {
-            contentValues.put(MediaStore.MediaColumns.ARTIST,artist);
+            contentValues.put("artist",artist);
         }
         if (result.durationSeconds > 0)
         {

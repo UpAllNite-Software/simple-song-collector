@@ -5,7 +5,9 @@ import org.schabi.newpipe.extractor.search.SearchInfo;
 
 import java.util.List;
 
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
+
+//import io.reactivex.Single;
 
 public final class ExtractorHelper
 {
