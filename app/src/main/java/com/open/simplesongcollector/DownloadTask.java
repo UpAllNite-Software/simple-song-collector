@@ -249,11 +249,11 @@ public class DownloadTask
         contentValues.put(MediaStore.MediaColumns.TITLE,title);
         if (artist!=null)
         {
-            contentValues.put("artist",artist);
+            contentValues.put(MediaStore.Audio.Media.ARTIST,artist);
         }
         if (result.durationSeconds > 0)
         {
-            contentValues.put(MediaStore.MediaColumns.DURATION,result.durationSeconds * 1000);
+            contentValues.put(MediaStore.Audio.Media.DURATION,result.durationSeconds * 1000);
         }
         contentValues.put(MediaStore.MediaColumns.DATE_ADDED, System.currentTimeMillis());
         contentValues.put(MediaStore.MediaColumns.DATA,m4aFilePath);
