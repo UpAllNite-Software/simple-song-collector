@@ -1,6 +1,8 @@
 package com.open.simplesongcollector;
 
 
+import android.os.Handler;
+
 import com.google.android.exoplayer2.audio.TeeAudioProcessor;
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
@@ -22,6 +24,7 @@ public class LevelMeterAudioBufferSink implements TeeAudioProcessor.AudioBufferS
     final int bandRange = 1;
     final int displayRate = 10; //per second
 
+    Handler handler = new Handler();
 
     private FFT fft;
     private int buffersProcessed;
@@ -170,7 +173,7 @@ public class LevelMeterAudioBufferSink implements TeeAudioProcessor.AudioBufferS
 
             if (this.levelUpdateListener != null)
             {
-                this.levelUpdateListener.onLevelsUpdate(accumulator);
+                handler.post(new Runnable() { @Override public void run() { LevelMeterAudioBufferSink.this.levelUpdateListener.onLevelsUpdate(accumulator);  } });
             }
         }
     }
