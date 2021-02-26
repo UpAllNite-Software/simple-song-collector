@@ -8,23 +8,6 @@
 
     app:cardCornerRadius="5dp">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:theme="@style/Theme.SimpleSongFinder.CardView">
-
-        <TextView
-            android:id="@+id/title"
-            android:layout_gravity="center_vertical"
-            android:layout_width="match_parent"
-            android:layout_height="34dp"
-            android:singleLine="false"
-            android:layout_margin="5dp"
-            android:textStyle="bold"
-            android:textSize="16sp"/>
-
-
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="140dp"
@@ -113,12 +96,15 @@
 
             </RelativeLayout>
 
-            <View
+            <TextView
+                android:id="@+id/title"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
+                android:layout_height="match_parent"
+                android:singleLine="false"
                 android:layout_weight="1"
-                />
-
+                android:layout_margin="5dp"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
 
             <RelativeLayout
                 android:layout_width="wrap_content"
@@ -156,6 +142,7 @@
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+
+
 
 </androidx.cardview.widget.CardView>
