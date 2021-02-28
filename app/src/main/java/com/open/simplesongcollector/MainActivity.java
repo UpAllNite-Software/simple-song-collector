@@ -104,8 +104,9 @@ public class MainActivity extends AppCompatActivity
     public final String TAG = getClass().getSimpleName();
     public static final boolean DEBUG = !BuildConfig.BUILD_TYPE.equals("release");
 
-    private SimpleExoPlayer exoPlayer;
-    private LevelMeterAudioBufferSink levelMeterAudioBufferSink;
+    private static SimpleExoPlayer exoPlayer;
+    private static String currentUrl;
+    private static LevelMeterAudioBufferSink levelMeterAudioBufferSink;
     private int playerPosition = -1;
 
     private SearchView searchView;
@@ -141,7 +142,18 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onChanged(SearchInfo searchInfo)
             {
+
                 searchResultAdapter = new SearchResultAdapter(searchInfo,MainActivity.this);
+
+                if (currentUrl != null)
+                {
+                    playerPosition = searchResultAdapter.resumeItem(currentUrl, exoPlayer, levelMeterAudioBufferSink);
+                    if (playerPosition == -1)
+                    {
+
+                        resetPlayer();
+                    }
+                }
                 recyclerView.swapAdapter(searchResultAdapter,true);
 
                 progressIndicator.setVisibility(View.INVISIBLE);
@@ -178,58 +190,8 @@ public class MainActivity extends AppCompatActivity
                         });
 
                 compositeDisposable.add(disposable);
-
-
             }
         });
-
-        searchViewModel.getSearchResponse().observe(MainActivity.this, new Observer<JSONObject>()
-        {
-            @Override
-            public void onChanged(JSONObject jsonResponse)
-            {
-                searchResultAdapter = new SearchResultAdapter(jsonResponse);
-                recyclerView.swapAdapter(searchResultAdapter,true);
-
-                progressIndicator.setVisibility(View.INVISIBLE);
-
-                Disposable disposable = searchResultAdapter.getDownloadClicks().subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(youTubeSearchResult -> {
-                            startDownload(youTubeSearchResult);
-                        }, e ->
-                        {
-                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                        });
-
-                compositeDisposable.add(disposable);
-
-                disposable = searchResultAdapter.getNeedArtworkRequests().subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(youTubeSearchResult -> {
-                            startGetArtwork(youTubeSearchResult);
-                        }, e ->
-                        {
-                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                        });
-
-                compositeDisposable.add(disposable);
-
-                disposable = searchResultAdapter.getStreamClicks().subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(youTubeSearchResult -> {
-                            startStream(youTubeSearchResult);
-                        }, e ->
-                        {
-                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                        });
-
-                compositeDisposable.add(disposable);
-
-
-            }
-        });
-
 
         searchViewModel.getSearchError().observe(MainActivity.this, new Observer<Throwable>()
         {
@@ -247,8 +209,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onQueryTextSubmit(String query) {
 
-                exoPlayer.stop(true);
-                levelMeterAudioBufferSink.setLevelUpdateListener(null);
+                resetPlayer();
 
                 recyclerView.swapAdapter(null,true);
 
@@ -278,25 +239,35 @@ public class MainActivity extends AppCompatActivity
 
         initView();
 
-        levelMeterAudioBufferSink = new LevelMeterAudioBufferSink();
+        if (exoPlayer==null)
+        {
+            levelMeterAudioBufferSink = new LevelMeterAudioBufferSink();
 
-        RenderersFactory renderersFactory = new DefaultRenderersFactory(this){
-            @Nullable
-            @Override
-            protected AudioSink buildAudioSink(Context context, boolean enableFloatOutput, boolean enableAudioTrackPlaybackParams, boolean enableOffload)
-            {
-                TeeAudioProcessor teeAudioProcessor = new TeeAudioProcessor(levelMeterAudioBufferSink);
-                return new DefaultAudioSink(AudioCapabilities.DEFAULT_AUDIO_CAPABILITIES, new DefaultAudioSink.DefaultAudioProcessorChain( teeAudioProcessor ).getAudioProcessors());
-                //return super.buildAudioSink(context, enableFloatOutput, enableAudioTrackPlaybackParams, enableOffload);
-            }
-        };
+            RenderersFactory renderersFactory = new DefaultRenderersFactory(this){
+                @Nullable
+                @Override
+                protected AudioSink buildAudioSink(Context context, boolean enableFloatOutput, boolean enableAudioTrackPlaybackParams, boolean enableOffload)
+                {
+                    TeeAudioProcessor teeAudioProcessor = new TeeAudioProcessor(levelMeterAudioBufferSink);
+                    return new DefaultAudioSink(AudioCapabilities.DEFAULT_AUDIO_CAPABILITIES, new DefaultAudioSink.DefaultAudioProcessorChain( teeAudioProcessor ).getAudioProcessors());
+                    //return super.buildAudioSink(context, enableFloatOutput, enableAudioTrackPlaybackParams, enableOffload);
+                }
+            };
 
-        SimpleExoPlayer.Builder builder = new SimpleExoPlayer.Builder(this, renderersFactory);
-        DataSource.Factory dsf = new DefaultDataSourceFactory(this, "Agent User");
-        builder.setMediaSourceFactory(new DefaultMediaSourceFactory(dsf));
+            SimpleExoPlayer.Builder builder = new SimpleExoPlayer.Builder(this, renderersFactory);
+            DataSource.Factory dsf = new DefaultDataSourceFactory(this, "Agent User");
+            builder.setMediaSourceFactory(new DefaultMediaSourceFactory(dsf));
 
-        exoPlayer = builder.build();
+            exoPlayer = builder.build();
+        }
 
+    }
+
+    private void resetPlayer()
+    {
+        exoPlayer.stop(true);
+        levelMeterAudioBufferSink.setLevelUpdateListener(null);
+        currentUrl = null;
     }
 
     private Drawable continueGetArtwork(YouTubeSearchResult youTubeSearchResult)
@@ -394,11 +365,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         compositeDisposable.dispose();
-        if (exoPlayer!=null)
-        {
-            exoPlayer.release();
-            exoPlayer = null;
-        }
 
 
         super.onDestroy();
@@ -467,8 +433,7 @@ public class MainActivity extends AppCompatActivity
 
     private void startStream(YouTubeSearchResult result)
     {
-        exoPlayer.stop(true);
-        levelMeterAudioBufferSink.setLevelUpdateListener(null);
+        resetPlayer();
 
         if (playerPosition != -1)
         {
@@ -481,7 +446,7 @@ public class MainActivity extends AppCompatActivity
             playerPosition = -1;
         }
 
-        String url = result.videoUrl;
+        currentUrl = result.videoUrl;
 
         //todo: show loading indicator
         result.streamLoading = true;

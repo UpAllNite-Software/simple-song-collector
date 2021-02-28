@@ -10,6 +10,8 @@ import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.exoplayer2.SimpleExoPlayer;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,33 +57,10 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultViewHo
         for(InfoItem item:searchInfo.getRelatedItems())
         {
             YouTubeSearchResult youTubeSearchResult = new YouTubeSearchResult(item,resultArray.size());
+
             youTubeSearchResult.audioOnly = audioOnly;
             resultArray.add(youTubeSearchResult);
         }
-
-    }
-
-    JSONObject apiObject;
-
-    public SearchResultAdapter(JSONObject jsonObject)
-    {
-        apiObject = jsonObject;
-
-        try
-        {
-            JSONArray items = apiObject.getJSONArray("items");
-            for(int i=0;i<items.length();i++)
-            {
-                JSONObject item = items.getJSONObject(i);
-                YouTubeSearchResult youTubeSearchResult = new YouTubeSearchResult(item,i);
-                resultArray.add(youTubeSearchResult);
-            }
-        }
-        catch (JSONException e)
-        {
-            e.printStackTrace();
-        }
-
     }
 
     @Override
@@ -148,7 +127,6 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultViewHo
         return onNeedArtwork.hide();
     }
 
-
     @Override
     public void onBindViewHolder(@NonNull SearchResultViewHolder holder, int position, @NonNull List<Object> payloads)
     {
@@ -164,6 +142,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultViewHo
     @Override
     public void onViewRecycled(@NonNull SearchResultViewHolder holder)
     {
+        holder.clearPlayer();
         super.onViewRecycled(holder);
     }
 
@@ -175,5 +154,20 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultViewHo
     public YouTubeSearchResult getSearchResultAt(int position)
     {
         return resultArray.get(position);
+    }
+
+    public int resumeItem(String currentUrl, SimpleExoPlayer exoPlayer, LevelMeterAudioBufferSink levelMeterAudioBufferSink)
+    {
+        for(YouTubeSearchResult youTubeSearchResult: resultArray)
+        {
+            if (youTubeSearchResult.videoUrl.equals(currentUrl))
+            {
+                youTubeSearchResult.exoPlayer = exoPlayer;
+                youTubeSearchResult.levelMeterAudioBufferSink = levelMeterAudioBufferSink;
+                return youTubeSearchResult.index;
+            }
+        }
+
+        return -1;
     }
 }

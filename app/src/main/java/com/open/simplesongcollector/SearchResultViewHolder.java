@@ -175,4 +175,11 @@ public class SearchResultViewHolder extends RecyclerView.ViewHolder
                 button.setColorFilter(ContextCompat.getColor(cardView.getContext(),R.color.colorTint));
         }
     }
+
+    public void clearPlayer()
+    {
+        playerView.setPlayer(null);
+        playerView.setControllerVisibilityListener(null);
+        levelMeter.setAudioBufferSink(null);
+    }
 }

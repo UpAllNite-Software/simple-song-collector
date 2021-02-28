@@ -58,11 +58,6 @@ public class SearchViewModel extends ViewModel
         return searchInfo;
     }
 
-    public LiveData<JSONObject> getSearchResponse()
-    {
-        return searchResponse;
-    }
-
     public void setQuery(String query)
     {
         this.query = query;
