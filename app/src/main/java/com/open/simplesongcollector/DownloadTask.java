@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.Random;
 
 import us.shandian.giga.io.FileStream;
 
@@ -69,6 +70,27 @@ public class DownloadTask
     }
 
     public LiveData<Integer> getDownloadProgress() { return downloadProgress; }
+
+    private static boolean isValidFilenameChar(char c) {
+        if ((0x00 <= c && c <= 0x1f)) {
+            return false;
+        }
+        switch (c) {
+            case '"':
+            case '*':
+            case '/':
+            case ':':
+            case '<':
+            case '>':
+            case '?':
+            case '\\':
+            case '|':
+            case 0x7F:
+                return false;
+            default:
+                return true;
+        }
+    }
 
 
     @NonNull
@@ -106,9 +128,32 @@ public class DownloadTask
         }
 
         File downloadFolder = getDownloadLocation();
-        String fileName = String.format("%s.%s.dash", streamInfo.getName(),selectedStream.getFormat().getSuffix());
+        String fileName = streamInfo.getName();
+        String sanitizedName = "";
+        for(char ch: fileName.toCharArray())
+        {
+            if (isValidFilenameChar(ch))
+            {
+                sanitizedName+=ch;
+            }
+        }
 
-        return directDownload(selectedStream, downloadFolder,fileName);
+
+        if (sanitizedName.isEmpty())
+        {
+            Random r = new Random(System.nanoTime());
+            for(int i=0;i<fileName.length();i++)
+            {
+                int rnd = (int) (Math.random() * 52); // or use Random or whatever
+                char base = (rnd < 26) ? 'A' : 'a';
+                sanitizedName+=(char) (base + rnd % 26);
+            }
+        }
+
+        sanitizedName = String.format("%s.%s.dash", sanitizedName,selectedStream.getFormat().getSuffix());
+
+
+        return directDownload(selectedStream, downloadFolder,sanitizedName);
 
     }
 
