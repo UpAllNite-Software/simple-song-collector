@@ -303,7 +303,15 @@ public class DownloadTask
         contentValues.put(MediaStore.MediaColumns.DATE_ADDED, System.currentTimeMillis());
         contentValues.put(MediaStore.MediaColumns.DATA,m4aFilePath);
         contentValues.put(MediaStore.MediaColumns.MIME_TYPE,"audio/m4a");
-        Uri newUri = context.getContentResolver().insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,contentValues);
+        Uri newUri = null;
+        try
+        {
+            newUri = context.getContentResolver().insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
         if (newUri == null)
         {
             Uri audioUri = MediaStore.Audio.Media.getContentUri("external");
