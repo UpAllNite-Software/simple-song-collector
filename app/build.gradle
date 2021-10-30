@@ -70,7 +70,7 @@ dependencies {
     implementation "io.reactivex.rxjava3:rxjava:3.0.7"
     implementation "io.reactivex.rxjava3:rxandroid:3.0.0"
     implementation 'org.bitbucket.ijabz:jaudiotagger:v2.2.5'
-    implementation "com.squareup.okhttp3:okhttp:3.12.12"
+    implementation "com.squareup.okhttp3:okhttp:3.12.13"
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
 
 
