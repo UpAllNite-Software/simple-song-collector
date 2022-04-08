@@ -1,15 +1,13 @@
 package com.open.simplesongcollector;
 
-import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.MediaStore;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -35,16 +33,19 @@ import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.streams.Mp4FromDashWriter;
 import org.schabi.newpipe.streams.io.SharpStream;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import us.shandian.giga.io.FileStream;
 
@@ -53,13 +54,17 @@ public class DownloadTask
     public final String TAG = getClass().getSimpleName();
     private YouTubeSearchResult result;
     private Context context;
-    static final int BUFFER_SIZE = 64 * 1024;
+    static final int BUFFER_SIZE = 16 * 1024;
 
     protected MutableLiveData<Integer> downloadProgress;
 
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private StreamInfo streamInfo;
+    private int bytesWritten;
+    private int fileSize;
+    private int chunkSize = 64 * 1024;
+
 
     public DownloadTask(Context context, YouTubeSearchResult result)
     {
@@ -94,7 +99,13 @@ public class DownloadTask
 
 
     @NonNull
-    private File getDownloadLocation() {
+    private File getPrivateDownloadLocation() {
+        File downloadsDir = SimpleSongCollectorApp.getInstance().getFilesDir();
+        return downloadsDir;
+    }
+
+    @NonNull
+    private File getPublicDownloadLocation() {
         File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         File youtubeDLDir = new File(downloadsDir, "SimpleSongFinder");
         if (!youtubeDLDir.exists())
@@ -127,7 +138,7 @@ public class DownloadTask
             throw new Exception("No audio streams available for source.");
         }
 
-        File downloadFolder = getDownloadLocation();
+        File downloadFolder = getPrivateDownloadLocation();
         String fileName = streamInfo.getName();
         String sanitizedName = "";
         for(char ch: fileName.toCharArray())
@@ -159,6 +170,7 @@ public class DownloadTask
 
     private Uri directDownload(AudioStream selectedStream, File downloadFolder, String fileName) throws Exception
     {
+        bytesWritten = 0;
         HttpURLConnection connection = openConnection(selectedStream.getUrl(),true,-1,-1);
         int statusCode = connection.getResponseCode();
         connection.getInputStream().close();
@@ -168,48 +180,67 @@ public class DownloadTask
             throw new Exception(String.format("Unable to open audio file stream: %d",statusCode));
         }
 
-        int fileSize = connection.getContentLength();
+        fileSize = connection.getContentLength();
+
+        if (fileSize == 0)
+        {
+            throw new Exception(String.format("Unable to open audio file stream. File size is zero"));
+        }
 
         System.out.printf("Retreiving file with size %d from server\n",fileSize);
 
-        connection = openConnection(selectedStream.getUrl(),false,0,fileSize);
-        statusCode = connection.getResponseCode();
-
-        System.out.printf("Getfile request status is %d\n",statusCode);
-
-        //todo read and write to file
-        int pos = 0;
-        int end = fileSize;
         File fDash = new File(downloadFolder,fileName);
-        FileOutputStream f = new FileOutputStream(fDash);
+        RandomAccessFile f = new RandomAccessFile(fDash,"rw");
+        f.setLength(fileSize);
 
-        try (InputStream is = connection.getInputStream()) {
-            byte[] buf = new byte[BUFFER_SIZE];
-            int len;
+        //split into chunks
+        int chunkCount = (fileSize / chunkSize) + ((fileSize % chunkSize) > 0 ? 1 : 0);
+        CountDownLatch latch = new CountDownLatch(chunkCount);
+        ExecutorService pool = Executors.newFixedThreadPool(4);
 
-            // use always start <= end
-            // fixes a deadlock because in some videos, youtube is sending one byte alone
-            while (pos <= end && (len = is.read(buf, 0, buf.length)) != -1) {
-                f.write(buf, 0, len);
-                pos += len;
-                int newProgress = (pos * 100)/end;
-                if (newProgress < 1)
+        for(int chunkStart = 0;chunkStart<fileSize;chunkStart += chunkSize)
+        {
+            int chunkEnd = Math.min(chunkStart + chunkSize,fileSize);
+
+
+            Thread.sleep(100);
+            int finalChunkStart = chunkStart;
+            Runnable task = () -> {
+                try
                 {
-                    newProgress = 1;
-                }
-                System.out.printf("download progress: %d of %d is %d\n",pos,end,newProgress);
-                downloadProgress.postValue(newProgress);
+                    downloadFileChunk(f,selectedStream, finalChunkStart,chunkEnd - 1);
 
-            }
+                } catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+                latch.countDown();
+
+            };
+
+            pool.execute(task);
         }
 
+        latch.await(180,TimeUnit.SECONDS);
+
+        pool.shutdown();
+
         f.close();
-        connection.getInputStream().close();
+
+        if (bytesWritten != fileSize)
+        {
+            throw new Exception(String.format("Download failed. Received %d bytes of %d",bytesWritten,fileSize));
+        }
+
 
         SharpStream dashStream = new FileStream(fDash);
 
-        String m4aFilePath = fDash.getAbsolutePath().replace(".dash","");
-        File fM4a = new File(m4aFilePath);
+        String m4aFileName = fDash.getName();
+        m4aFileName = m4aFileName.replace(".dash","");
+
+        File m4aFolderFile = getPublicDownloadLocation();
+
+        File fM4a = new File(m4aFolderFile,m4aFileName);
         if (fM4a.exists())
         {
             fM4a.delete();
@@ -232,7 +263,55 @@ public class DownloadTask
 
     }
 
-    private Uri processSuccessfulDownloadWithPath(@NonNull String m4aFilePath, @NonNull YouTubeSearchResult result) throws TagException, ReadOnlyFileException, CannotReadException, InvalidAudioFrameException, IOException, CannotWriteException
+    private void downloadFileChunk(RandomAccessFile f, AudioStream selectedStream, int chunkStart, int chunkEnd) throws Exception
+    {
+        HttpURLConnection connection = openConnection(selectedStream.getUrl(),false,chunkStart,chunkEnd);
+        int statusCode = connection.getResponseCode();
+
+        if (statusCode != 206)
+        {
+            throw new Exception(String.format("Unable to open audio file stream chunk: %d",statusCode));
+        }
+
+        int chunkNumber = chunkStart / chunkSize;
+
+        System.out.printf("Getfile request status for chunk %d from byte %d to %d is %d\n",chunkNumber, chunkStart, chunkEnd, statusCode);
+
+        int pos = chunkStart;
+        int end = chunkEnd;
+
+        try (InputStream is = connection.getInputStream()) {
+            byte[] buf = new byte[BUFFER_SIZE];
+            int len;
+
+            // use always start <= end
+            // fixes a deadlock because in some videos, youtube is sending one byte alone
+            while (pos <= end && (len = is.read(buf, 0, buf.length)) != -1) {
+                synchronized (f)
+                {
+                    f.seek(pos);
+                    f.write(buf, 0, len);
+                    pos += len;
+                    bytesWritten += len;
+                    int newProgress = (bytesWritten * 100) / fileSize;
+                    if (newProgress < 1)
+                    {
+                        newProgress = 1;
+                    }
+                    System.out.printf("download progress: %d of %d is %d\n", bytesWritten, fileSize, newProgress);
+                    downloadProgress.postValue(newProgress);
+                }
+
+            }
+        }
+
+        connection.getInputStream().close();
+
+        System.out.printf("Chunk %d completed\n",chunkNumber);
+
+    }
+
+    private Uri processSuccessfulDownloadWithPath(@NonNull String m4aFilePath, @NonNull YouTubeSearchResult result) throws TagException, ReadOnlyFileException, CannotReadException, InvalidAudioFrameException, IOException, CannotWriteException, InterruptedException
     {
 
         String title = streamInfo.getName();
@@ -289,47 +368,24 @@ public class DownloadTask
 
         AudioFileIO.write(af);
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(MediaStore.Audio.Media.IS_MUSIC,1);
-        contentValues.put(MediaStore.MediaColumns.TITLE,title);
-        if (artist!=null)
-        {
-            contentValues.put(MediaStore.Audio.Media.ARTIST,artist);
-        }
-        if (result.durationSeconds > 0)
-        {
-            contentValues.put(MediaStore.Audio.Media.DURATION,result.durationSeconds * 1000);
-        }
-        contentValues.put(MediaStore.MediaColumns.DATE_ADDED, System.currentTimeMillis());
-        contentValues.put(MediaStore.MediaColumns.DATA,m4aFilePath);
-        contentValues.put(MediaStore.MediaColumns.MIME_TYPE,"audio/m4a");
-        Uri newUri = null;
-        try
-        {
-            newUri = context.getContentResolver().insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues);
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-        }
-        if (newUri == null)
-        {
-            Uri audioUri = MediaStore.Audio.Media.getContentUri("external");
-            String[] projection = {MediaStore.MediaColumns._ID };
-            String selection = MediaStore.MediaColumns.DATA + " LIKE ?";
-            String[] selectionArgs = new String[] { m4aFilePath };
-            Cursor cursor = context.getContentResolver().query(audioUri,projection,selection,selectionArgs,null);
-            if (cursor.getCount()!=0)
-            {
-                cursor.moveToFirst();
-                String songId = cursor.getString(0);
-                newUri = Uri.parse(audioUri.toString() + "/" + songId);
-            }
-            cursor.close();
-        }
+        String[] filePaths = new String[]{m4aFilePath};
+        String[] mimeTypes = new String[]{"audio/m4a"};
+        CountDownLatch latch = new CountDownLatch(1);
+        final Uri[] updated = new Uri[1];
 
-        downloadProgress.postValue(100);
-        return newUri;
+        MediaScannerConnection.scanFile(SimpleSongCollectorApp.getInstance().getApplicationContext(), filePaths, mimeTypes, new MediaScannerConnection.OnScanCompletedListener()
+        {
+            @Override
+            public void onScanCompleted(String path, Uri uri)
+            {
+                downloadProgress.postValue(100);
+                updated[0] = uri;
+                latch.countDown();
+            }
+        });
+
+        latch.await();
+        return updated[0];
     }
 
     HttpURLConnection openConnection(String url, boolean headRequest, long rangeStart, long rangeEnd) throws IOException {

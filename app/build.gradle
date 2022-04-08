@@ -3,15 +3,23 @@ plugins {
 }
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion '29.0.3'
+    signingConfigs {
+        debug {
+            storeFile file('F:\\DevGit\\upallnitecommon\\Android KeyStores\\SimpleSongCollector.jks')
+            storePassword 'Ssc022121'
+            keyAlias 'key0'
+            keyPassword 'Ssc022121'
+        }
+    }
+    compileSdkVersion 30
+    buildToolsVersion '30.0.2'
 
     defaultConfig {
         applicationId "com.open.simplesongfinder"
         minSdkVersion 19
-        targetSdkVersion 29
-        versionCode 5
-        versionName "1.0"
+        targetSdkVersion 30
+        versionCode 9
+        versionName "1.0.9"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -49,10 +57,10 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.1'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.github.TeamNewPipe:NewPipeExtractor:v0.21.13'
+    implementation 'com.github.TeamNewPipe:NewPipeExtractor:v0.21.14'
     implementation 'com.github.ddf:Minim:aed0a1a3e0f472d8ac8d69ea79b51017afe5d796'
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
