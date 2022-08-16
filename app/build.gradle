@@ -12,14 +12,13 @@ android {
         }
     }
     compileSdkVersion 30
-    buildToolsVersion '30.0.2'
 
     defaultConfig {
         applicationId "com.open.simplesongfinder"
         minSdkVersion 19
         targetSdkVersion 30
-        versionCode 10
-        versionName "1.0.10"
+        versionCode 11
+        versionName "1.0.11"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -60,7 +59,7 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.github.TeamNewPipe:NewPipeExtractor:bebdc55ad42ef964a547059110573a177331cf4d'
+    implementation 'com.github.TeamNewPipe:NewPipeExtractor:76aad92fa54524f20c3338ab568c9cd6b50c9d33'
     implementation 'com.github.ddf:Minim:aed0a1a3e0f472d8ac8d69ea79b51017afe5d796'
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
