@@ -140,6 +140,24 @@ public class DownloadTask
 
         File downloadFolder = getPrivateDownloadLocation();
         String fileName = streamInfo.getName();
+
+        String nameUnique = streamInfo.getUploaderName();
+        if (nameUnique != null && nameUnique.length()>0)
+        {
+            nameUnique = nameUnique.replace(" - Topic","");
+        }
+
+        if (nameUnique == null || nameUnique.length()==0)
+        {
+            nameUnique = streamInfo.getId();
+        }
+
+        if (nameUnique != null && nameUnique.length() > 0)
+        {
+            fileName += ".";
+            fileName += nameUnique;
+        }
+
         String sanitizedName = "";
         for(char ch: fileName.toCharArray())
         {
@@ -148,7 +166,6 @@ public class DownloadTask
                 sanitizedName+=ch;
             }
         }
-
 
         if (sanitizedName.isEmpty())
         {
@@ -159,6 +176,12 @@ public class DownloadTask
                 char base = (rnd < 26) ? 'A' : 'a';
                 sanitizedName+=(char) (base + rnd % 26);
             }
+        }
+
+        if (sanitizedName.startsWith("."))
+        {
+            //avoid hidden file starting with dot
+            sanitizedName = "_" + sanitizedName;
         }
 
         sanitizedName = String.format("%s.%s.dash", sanitizedName,selectedStream.getFormat().getSuffix());
@@ -316,10 +339,11 @@ public class DownloadTask
 
         String title = streamInfo.getName();
         String artist = streamInfo.getUploaderName();
+        artist = artist.replace(" - Topic","");
         String album = null;
         Description description = streamInfo.getDescription();
         String content = description.getContent();
-        String[] contentLines = content.split("<br>");
+        String[] contentLines = content.contains("<br>") ? content.split("<br>") : content.split("/n/n");
         if (contentLines!= null && contentLines.length > 1 && contentLines[2].contains("·"))
         {
             String[] parts = contentLines[2].split("·");

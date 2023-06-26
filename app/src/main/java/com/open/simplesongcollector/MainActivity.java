@@ -118,6 +118,7 @@ public class MainActivity extends AppCompatActivity
 
     public CompositeDisposable compositeDisposable = new CompositeDisposable();
     private CircularProgressIndicator progressIndicator;
+    private YouTubeSearchResult pendingDownloadResult;
 
 
     @Override
@@ -370,33 +371,37 @@ public class MainActivity extends AppCompatActivity
         super.onDestroy();
     }
 
-    public boolean isStoragePermissionGranted()
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+    {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 117 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        {
+            continueDownload(pendingDownloadResult);
+        }
+    }
+
+    public void startDownload(YouTubeSearchResult result)
     {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
             {
-                return true;
+                continueDownload(result);
             }
             else
             {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-                return false;
+                this.pendingDownloadResult = result;
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 117);
             }
         }
         else
         {
-            return true;
+            continueDownload(result);
         }
     }
 
-
-    public void startDownload(YouTubeSearchResult result)
+    public void continueDownload(YouTubeSearchResult result)
     {
-        if (!isStoragePermissionGranted())
-        {
-            Toast.makeText(this, "grant storage permission and retry", Toast.LENGTH_LONG).show();
-            return;
-        }
 
         if (TextUtils.isEmpty(result.videoUrl))
         {
