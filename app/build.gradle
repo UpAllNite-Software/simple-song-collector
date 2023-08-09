@@ -16,9 +16,10 @@ android {
     defaultConfig {
         applicationId "com.open.simplesongfinder"
         minSdkVersion 19
+        //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 30
-        versionCode 13
-        versionName "1.0.13"
+        versionCode 14
+        versionName "1.0.14"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -54,7 +55,7 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.github.TeamNewPipe:NewPipeExtractor:25f0ce7305822d37bb6ff21280dff37b2451affd'
+    implementation 'com.github.TeamNewPipe:NewPipeExtractor:5492343b8ef39f12dd89b82e4db0c29047c613e8'
     implementation ('org.mozilla:rhino') {
         version {
             strictly '1.7.13'
