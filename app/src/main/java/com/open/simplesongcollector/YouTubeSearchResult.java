@@ -8,9 +8,12 @@ import com.open.simplesongcollector.util.IsoDuration;
 
 import org.json.JSONObject;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.schabi.newpipe.extractor.Image;
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.InfoItem;
+
+import java.util.List;
 
 
 public class YouTubeSearchResult
@@ -81,7 +84,11 @@ public class YouTubeSearchResult
         title = item.getName();
 
         videoUrl = item.getUrl();
-        thumbnailUrl = item.getThumbnailUrl();
+        List<Image> thumbnails = item.getThumbnails();
+        if (!thumbnails.isEmpty())
+        {
+            thumbnailUrl =thumbnails.get(0).getUrl();
+        }
         if (item instanceof StreamInfoItem)
         {
             durationSeconds = ((StreamInfoItem) item).getDuration();
