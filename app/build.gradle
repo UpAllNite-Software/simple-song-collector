@@ -18,8 +18,8 @@ android {
         minSdkVersion 19
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 30
-        versionCode 14
-        versionName "1.0.14"
+        versionCode 15
+        versionName "1.0.15"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -34,8 +34,8 @@ android {
     compileOptions {
         coreLibraryDesugaringEnabled true
 
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_10
+        targetCompatibility JavaVersion.VERSION_1_10
         encoding 'utf-8'
     }
     packagingOptions {
@@ -53,10 +53,10 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.github.TeamNewPipe:NewPipeExtractor:91419ec6e8388081bd6a8c1e67686662e29a6687'
+    implementation 'com.github.TeamNewPipe:NewPipeExtractor:f276caf54a85a271904943e4aa6c57efd4249fec'
     implementation ('org.mozilla:rhino') {
         version {
             strictly '1.7.13'

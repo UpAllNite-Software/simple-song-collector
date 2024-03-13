@@ -20,6 +20,7 @@ public class YouTubeSearchResult
 {
     public int index;
     public String title;
+    public String artist;
     public String videoUrl;
     public String thumbnailUrl;
     public long durationSeconds = 0;
@@ -91,6 +92,7 @@ public class YouTubeSearchResult
         }
         if (item instanceof StreamInfoItem)
         {
+            artist = ((StreamInfoItem) item).getUploaderName();
             durationSeconds = ((StreamInfoItem) item).getDuration();
         }
     }

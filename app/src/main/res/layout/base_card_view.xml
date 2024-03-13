@@ -18,11 +18,24 @@
             android:id="@+id/title"
             android:layout_gravity="center_vertical"
             android:layout_width="match_parent"
-            android:layout_height="34dp"
+            android:layout_height="24dp"
             android:singleLine="false"
-            android:layout_margin="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
             android:textStyle="bold"
             android:textSize="16sp"/>
+
+        <TextView
+            android:id="@+id/artist"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:singleLine="false"
+            android:layout_weight="1"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:textStyle="normal"
+            android:textSize="14sp"/>
 
 
         <androidx.appcompat.widget.LinearLayoutCompat

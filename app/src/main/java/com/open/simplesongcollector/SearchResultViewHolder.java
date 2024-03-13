@@ -25,6 +25,7 @@ public class SearchResultViewHolder extends RecyclerView.ViewHolder
     public LifecycleOwner lifeCycleOwner;
     private CardView cardView;
     private TextView cardName;
+    private TextView artistName;
     private PlayerView playerView;
     private ImageView thumbnailView;
     private TextView durationView;
@@ -37,6 +38,7 @@ public class SearchResultViewHolder extends RecyclerView.ViewHolder
         super(itemView);
         cardView = (CardView) itemView;
         cardName = itemView.findViewById(R.id.title);
+        artistName = itemView.findViewById(R.id.artist);
         playerView = itemView.findViewById(R.id.video_player);
 
         thumbnailView = (ImageView)cardView.findViewById(R.id.thumbnail);
@@ -53,6 +55,7 @@ public class SearchResultViewHolder extends RecyclerView.ViewHolder
     {
         //draw the whole item
         cardName.setText(result.title);
+        artistName.setText(result.artist);
 
         TextView durationView = cardView.findViewById(R.id.duration);
         String durationString = "";
