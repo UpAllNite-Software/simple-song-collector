@@ -63,7 +63,7 @@ public class DownloadTask
     private StreamInfo streamInfo;
     private int bytesWritten;
     private int fileSize;
-    private int chunkSize = 64 * 1024;
+    private int chunkSize = 300 * 1024;
 
 
     public DownloadTask(Context context, YouTubeSearchResult result)
@@ -194,7 +194,7 @@ public class DownloadTask
     private Uri directDownload(AudioStream selectedStream, File downloadFolder, String fileName) throws Exception
     {
         bytesWritten = 0;
-        HttpURLConnection connection = openConnection(selectedStream.getUrl(),true,-1,-1);
+        HttpURLConnection connection = openConnection(selectedStream.getContent(),true,-1,-1);
         int statusCode = connection.getResponseCode();
         connection.getInputStream().close();
 
@@ -215,6 +215,9 @@ public class DownloadTask
         File fDash = new File(downloadFolder,fileName);
         RandomAccessFile f = new RandomAccessFile(fDash,"rw");
         f.setLength(fileSize);
+
+        Random rand = new Random();
+        chunkSize += rand.nextInt(64) * 1024;
 
         //split into chunks
         int chunkCount = (fileSize / chunkSize) + ((fileSize % chunkSize) > 0 ? 1 : 0);
