@@ -18,8 +18,8 @@ android {
         minSdkVersion 19
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 30
-        versionCode 16
-        versionName "1.0.16"
+        versionCode 17
+        versionName "1.0.17"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -56,7 +56,7 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.github.teamnewpipe:NewPipeExtractor:592f1596e6341e1058378468152ba4221a0ddb69'
+    implementation 'com.github.teamnewpipe:NewPipeExtractor:2d36945b392beb9804ff2b5afb05592f03c20609'
     implementation ('org.mozilla:rhino') {
         version {
             strictly '1.7.13'
