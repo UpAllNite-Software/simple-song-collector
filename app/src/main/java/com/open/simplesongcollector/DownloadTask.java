@@ -272,9 +272,12 @@ public class DownloadTask
         File m4aFolderFile = getPublicDownloadLocation();
 
         File fM4a = new File(m4aFolderFile,m4aFileName);
-        if (fM4a.exists())
+        if(fM4a.exists())
         {
-            fM4a.delete();
+            boolean res = fM4a.delete();
+            if (!res) {
+                throw new Exception("Download failed... file already exists in downloads folder");
+            }
         }
         SharpStream m4aStream = new FileStream(fM4a);
 
