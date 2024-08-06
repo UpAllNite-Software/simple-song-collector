@@ -121,15 +121,20 @@ public class DownloadTask
 
         streamInfo = StreamInfo.getInfo(NewPipe.getService(0), result.videoUrl);
 
+        int maxBitrate = 0;
         AudioStream selectedStream = null;
         List<AudioStream> audioStreams = streamInfo.getAudioStreams();
         for(AudioStream audioStream: audioStreams)
         {
             if (audioStream.getFormat().getSuffix().compareToIgnoreCase("m4a")==0)
             {
-                System.out.println("Found m4a stream at url: "+audioStream.getUrl());
-                selectedStream = audioStream;
-                break;
+                int bitrate = audioStream.getBitrate();
+                System.out.println("Found m4a stream with bitrate "+bitrate+" at url: "+audioStream.getContent());
+                if (audioStream.getBitrate() > maxBitrate)
+                {
+                    selectedStream = audioStream;
+                    maxBitrate = audioStream.getBitrate();
+                }
             }
         }
 
