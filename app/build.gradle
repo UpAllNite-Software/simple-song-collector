@@ -14,12 +14,12 @@ android {
 
     defaultConfig {
         applicationId "com.open.simplesongfinder"
-        minSdkVersion 19
+        minSdkVersion 21
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 34
         compileSdk 34
-        versionCode 19
-        versionName "1.0.19"
+        versionCode 20
+        versionName "1.0.20"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -34,8 +34,8 @@ android {
     compileOptions {
         coreLibraryDesugaringEnabled true
 
-        sourceCompatibility JavaVersion.VERSION_1_10
-        targetCompatibility JavaVersion.VERSION_1_10
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
         encoding 'utf-8'
     }
     packagingOptions {
@@ -53,10 +53,10 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.0.2'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.0.4'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.github.teamnewpipe:NewPipeExtractor:2d36945b392beb9804ff2b5afb05592f03c20609'
+    implementation 'com.github.teamnewpipe:NewPipeExtractor:v0.24.3'
     implementation ('org.mozilla:rhino') {
         version {
             strictly '1.7.13'
@@ -73,8 +73,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.3.0'
 
     implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
-    implementation 'com.google.android.exoplayer:exoplayer-core:2.13.0'
-    implementation 'com.google.android.exoplayer:exoplayer:2.13.0'
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.18.7'
+    implementation 'com.google.android.exoplayer:exoplayer:2.18.7'
 
     implementation "io.reactivex.rxjava3:rxjava:3.0.7"
     implementation "io.reactivex.rxjava3:rxandroid:3.0.0"
