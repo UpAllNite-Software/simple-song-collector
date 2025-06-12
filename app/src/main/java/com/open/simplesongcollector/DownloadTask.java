@@ -14,6 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.open.simplesongcollector.util.Globals;
+
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
@@ -352,18 +354,48 @@ public class DownloadTask
         String artist = streamInfo.getUploaderName();
         artist = artist.replace(" - Topic","");
         String album = null;
-        Description description = streamInfo.getDescription();
-        String content = description.getContent();
-        String[] contentLines = content.contains("<br>") ? content.split("<br>") : content.split("/n/n");
-        if (contentLines!= null && contentLines.length > 1 && contentLines[2].contains("·"))
+
+        String searchType = Globals.getSearchType();
+        if (searchType.equals("music_songs"))
         {
-            String[] parts = contentLines[2].split("·");
-            title = parts[0].trim();
-            artist = parts[1].trim();
-            if (contentLines.length>3)
+            Description description = streamInfo.getDescription();
+            String content = description.getContent();
+            String[] contentLines = content.contains("<br>") ? content.split("<br>") : content.split("/n/n");
+
+            if (contentLines != null && contentLines.length > 2 && contentLines[2].contains("·"))
             {
-                album = contentLines[4].trim();
+                String[] parts = contentLines[2].split("·");
+                if (parts.length > 1)
+                {
+                    title = parts[0].trim();
+                    artist = parts[1].trim();
+                }
+                if (contentLines.length > 4)
+                {
+                    album = contentLines[4].trim();
+                }
             }
+        }
+        else {
+            if (title.contains(":"))
+            {
+                String[] parts = title.split(":");
+                if (parts.length > 1)
+                {
+                    title = parts[0].trim();
+                    artist = parts[1].trim();
+                }
+            }
+            else if (title.contains("-"))
+            {
+                String[] parts = title.split("-");
+                if (parts.length > 1)
+                {
+                    title = parts[0].trim();
+                    artist = parts[1].trim();
+                }
+            }
+
         }
 
 
