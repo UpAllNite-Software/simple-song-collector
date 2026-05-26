@@ -121,27 +121,31 @@ public class DownloadTask
     public Uri execute() throws Exception
     {
 
-        streamInfo = StreamInfo.getInfo(NewPipe.getService(0), result.videoUrl);
-
-        int maxBitrate = 0;
+        // YouTube may randomly serve SABR-only responses with no usable stream URLs.
+        // Retry a few times since subsequent requests often return traditional streams.
         AudioStream selectedStream = null;
-        List<AudioStream> audioStreams = streamInfo.getAudioStreams();
-        for(AudioStream audioStream: audioStreams)
-        {
-            if (audioStream.getFormat().getSuffix().compareToIgnoreCase("m4a")==0)
-            {
-                int bitrate = audioStream.getBitrate();
-                System.out.println("Found m4a stream with bitrate "+bitrate+" at url: "+audioStream.getContent());
-                if (audioStream.getBitrate() > maxBitrate)
-                {
-                    selectedStream = audioStream;
-                    maxBitrate = audioStream.getBitrate();
+        for (int attempt = 0; attempt < 3; attempt++) {
+            streamInfo = StreamInfo.getInfo(NewPipe.getService(0), result.videoUrl);
+
+            int maxBitrate = 0;
+            List<AudioStream> audioStreams = streamInfo.getAudioStreams();
+            for (AudioStream audioStream : audioStreams) {
+                if (audioStream.getFormat().getSuffix().compareToIgnoreCase("m4a") == 0) {
+                    int bitrate = audioStream.getBitrate();
+                    System.out.println("Found m4a stream with bitrate " + bitrate + " at url: " + audioStream.getContent());
+                    if (audioStream.getBitrate() > maxBitrate) {
+                        selectedStream = audioStream;
+                        maxBitrate = audioStream.getBitrate();
+                    }
                 }
             }
+
+            if (selectedStream != null) break;
+            System.out.println("No audio streams on attempt " + (attempt + 1) + ", retrying...");
+            Thread.sleep(1000);
         }
 
-        if (selectedStream==null)
-        {
+        if (selectedStream == null) {
             throw new Exception("No audio streams available for source.");
         }
 
