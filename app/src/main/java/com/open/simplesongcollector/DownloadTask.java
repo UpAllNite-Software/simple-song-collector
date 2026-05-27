@@ -32,6 +32,11 @@ import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.Description;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
+import org.schabi.newpipe.extractor.stream.VideoStream;
+
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
+import android.media.MediaMuxer;
 import org.schabi.newpipe.streams.Mp4FromDashWriter;
 import org.schabi.newpipe.streams.io.SharpStream;
 
@@ -121,32 +126,42 @@ public class DownloadTask
     public Uri execute() throws Exception
     {
 
-        // YouTube may randomly serve SABR-only responses with no usable stream URLs.
-        // Retry a few times since subsequent requests often return traditional streams.
-        AudioStream selectedStream = null;
-        for (int attempt = 0; attempt < 3; attempt++) {
-            streamInfo = StreamInfo.getInfo(NewPipe.getService(0), result.videoUrl);
+        // YouTube may serve SABR-only responses with no usable audio stream URLs.
+        // Try audio streams first, then fall back to extracting audio from video stream.
+        streamInfo = StreamInfo.getInfo(NewPipe.getService(0), result.videoUrl);
 
-            int maxBitrate = 0;
-            List<AudioStream> audioStreams = streamInfo.getAudioStreams();
-            for (AudioStream audioStream : audioStreams) {
-                if (audioStream.getFormat().getSuffix().compareToIgnoreCase("m4a") == 0) {
-                    int bitrate = audioStream.getBitrate();
-                    System.out.println("Found m4a stream with bitrate " + bitrate + " at url: " + audioStream.getContent());
-                    if (audioStream.getBitrate() > maxBitrate) {
-                        selectedStream = audioStream;
-                        maxBitrate = audioStream.getBitrate();
-                    }
+        // Log all available streams for diagnostics
+        List<AudioStream> audioStreams = streamInfo.getAudioStreams();
+        System.out.println("Audio streams: " + audioStreams.size());
+        for (AudioStream as : audioStreams) {
+            System.out.println("  Audio: " + as.getFormat().getSuffix() + " " + as.getBitrate() + "kbps url=" + as.getContent());
+        }
+        List<VideoStream> videoStreams = streamInfo.getVideoStreams();
+        System.out.println("Video streams: " + videoStreams.size());
+        for (VideoStream vs : videoStreams) {
+            System.out.println("  Video: " + vs.getFormat().getSuffix() + " " + vs.getResolution() + " url=" + vs.getContent());
+        }
+
+        AudioStream selectedStream = null;
+        int maxBitrate = 0;
+        for (AudioStream audioStream : audioStreams) {
+            if (audioStream.getFormat().getSuffix().compareToIgnoreCase("m4a") == 0) {
+                if (audioStream.getBitrate() > maxBitrate) {
+                    selectedStream = audioStream;
+                    maxBitrate = audioStream.getBitrate();
                 }
             }
+        }
 
-            if (selectedStream != null) break;
-            System.out.println("No audio streams on attempt " + (attempt + 1) + ", retrying...");
-            Thread.sleep(1000);
+        // If no audio-only streams, fall back to video stream and extract audio
+        if (selectedStream == null && !videoStreams.isEmpty()) {
+            System.out.println("No audio streams available, falling back to video stream audio extraction");
+            VideoStream videoStream = videoStreams.get(0);
+            return downloadVideoAndExtractAudio(videoStream);
         }
 
         if (selectedStream == null) {
-            throw new Exception("No audio streams available for source.");
+            throw new Exception("No audio or video streams available for source.");
         }
 
         File downloadFolder = getPrivateDownloadLocation();
@@ -406,38 +421,39 @@ public class DownloadTask
 
         File fM4a = new File(m4aFilePath);
 
-        AudioFile af = AudioFileIO.read(fM4a);
-        Tag tag = af.getTag();
-        String metaTitle = tag.getFirst(FieldKey.TITLE);
-        String metaArtist = tag.getFirst(FieldKey.ARTIST);
+        try {
+            AudioFile af = AudioFileIO.read(fM4a);
+            Tag tag = af.getTagAndConvertOrCreateAndSetDefault();
+            String metaTitle = tag.getFirst(FieldKey.TITLE);
+            String metaArtist = tag.getFirst(FieldKey.ARTIST);
 
-        if (metaTitle.isEmpty())
-        {
-            tag.setField(FieldKey.TITLE, title);
-        }
-        if (metaArtist.isEmpty())
-        {
-            tag.setField(FieldKey.ARTIST, artist);
-        }
-        if (album != null)
-        {
-            tag.setField(FieldKey.ALBUM,album);
-        }
+            if (metaTitle.isEmpty()) {
+                tag.setField(FieldKey.TITLE, title);
+            }
+            if (metaArtist.isEmpty()) {
+                tag.setField(FieldKey.ARTIST, artist);
+            }
+            if (album != null) {
+                tag.setField(FieldKey.ALBUM, album);
+            }
 
-        if (result.thumbnailImage != null)
-        {
-            Bitmap bitmap = ((BitmapDrawable) result.thumbnailImage).getBitmap();
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-            byte[] bitmapdata = stream.toByteArray();
-            Artwork artwork = ArtworkFactory.getNew();
-            artwork.setBinaryData(bitmapdata);
-            int i = artwork.getPictureType();
-            Log.d(TAG, "image type " + i);
-            tag.addField(artwork);
-        }
+            if (result.thumbnailImage != null) {
+                Bitmap bitmap = ((BitmapDrawable) result.thumbnailImage).getBitmap();
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                byte[] bitmapdata = stream.toByteArray();
+                Artwork artwork = ArtworkFactory.getNew();
+                artwork.setBinaryData(bitmapdata);
+                int i = artwork.getPictureType();
+                Log.d(TAG, "image type " + i);
+                tag.addField(artwork);
+            }
 
-        AudioFileIO.write(af);
+            AudioFileIO.write(af);
+        } catch (Exception e) {
+            // TODO: fix M4A structure so jaudiotagger can parse video-extracted files
+            System.out.println("Warning: unable to write tags, file saved without metadata: " + e.getMessage());
+        }
 
         String[] filePaths = new String[]{m4aFilePath};
         String[] mimeTypes = new String[]{"audio/m4a"};
@@ -457,6 +473,130 @@ public class DownloadTask
 
         latch.await();
         return updated[0];
+    }
+
+    private Uri downloadVideoAndExtractAudio(VideoStream videoStream) throws Exception {
+        bytesWritten = 0;
+        String videoUrl = videoStream.getContent();
+
+        HttpURLConnection connection = openConnection(videoUrl, true, -1, -1);
+        int statusCode = connection.getResponseCode();
+        connection.getInputStream().close();
+
+        if (statusCode != 200) {
+            throw new Exception(String.format("Unable to open video stream: %d", statusCode));
+        }
+
+        fileSize = connection.getContentLength();
+        if (fileSize == 0) {
+            throw new Exception("Unable to open video stream. File size is zero");
+        }
+
+        System.out.printf("Downloading video file with size %d for audio extraction\n", fileSize);
+
+        File downloadFolder = getPrivateDownloadLocation();
+        File videoFile = new File(downloadFolder, "video_temp.mp4");
+
+        // Simple single-threaded download for the video
+        HttpURLConnection dlConn = openConnection(videoUrl, false, -1, -1);
+        try (InputStream is = dlConn.getInputStream();
+             java.io.FileOutputStream fos = new java.io.FileOutputStream(videoFile)) {
+            byte[] buf = new byte[BUFFER_SIZE];
+            int len;
+            while ((len = is.read(buf)) != -1) {
+                fos.write(buf, 0, len);
+                bytesWritten += len;
+                int progress = (int) ((bytesWritten * 100L) / fileSize);
+                if (progress < 1) progress = 1;
+                downloadProgress.postValue(progress);
+            }
+        }
+        dlConn.getInputStream().close();
+
+        System.out.println("Video download complete, extracting audio track");
+
+        // Extract audio track from MP4 using MediaExtractor + MediaMuxer
+        String fileName = streamInfo.getName();
+        String nameUnique = streamInfo.getUploaderName();
+        if (nameUnique != null && nameUnique.length() > 0) {
+            nameUnique = nameUnique.replace(" - Topic", "");
+        }
+        if (nameUnique == null || nameUnique.length() == 0) {
+            nameUnique = streamInfo.getId();
+        }
+
+        String sanitizedName = "";
+        String rawName = fileName + "." + nameUnique;
+        for (char ch : rawName.toCharArray()) {
+            if (isValidFilenameChar(ch)) {
+                sanitizedName += ch;
+            }
+        }
+        if (sanitizedName.isEmpty()) {
+            sanitizedName = "extracted_audio";
+        }
+        if (sanitizedName.startsWith(".")) {
+            sanitizedName = "_" + sanitizedName;
+        }
+
+        File m4aFolderFile = getPublicDownloadLocation();
+        File m4aFile = new File(m4aFolderFile, sanitizedName + ".m4a");
+        if (m4aFile.exists()) {
+            m4aFile.delete();
+        }
+
+        MediaExtractor extractor = new MediaExtractor();
+        extractor.setDataSource(videoFile.getAbsolutePath());
+
+        int audioTrackIndex = -1;
+        for (int i = 0; i < extractor.getTrackCount(); i++) {
+            MediaFormat format = extractor.getTrackFormat(i);
+            String mime = format.getString(MediaFormat.KEY_MIME);
+            System.out.println("  Track " + i + ": " + mime);
+            if (mime != null && mime.startsWith("audio/")) {
+                audioTrackIndex = i;
+                break;
+            }
+        }
+
+        if (audioTrackIndex < 0) {
+            videoFile.delete();
+            throw new Exception("No audio track found in video stream");
+        }
+
+        extractor.selectTrack(audioTrackIndex);
+        MediaFormat audioFormat = extractor.getTrackFormat(audioTrackIndex);
+
+        MediaMuxer muxer = new MediaMuxer(m4aFile.getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+        int outputTrackIndex = muxer.addTrack(audioFormat);
+        muxer.start();
+
+        java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1024 * 1024);
+        android.media.MediaCodec.BufferInfo bufferInfo = new android.media.MediaCodec.BufferInfo();
+
+        while (true) {
+            int sampleSize = extractor.readSampleData(buffer, 0);
+            if (sampleSize < 0) break;
+
+            bufferInfo.offset = 0;
+            bufferInfo.size = sampleSize;
+            bufferInfo.presentationTimeUs = extractor.getSampleTime();
+            bufferInfo.flags = (extractor.getSampleFlags() & MediaExtractor.SAMPLE_FLAG_SYNC) != 0
+                    ? android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME : 0;
+
+            muxer.writeSampleData(outputTrackIndex, buffer, bufferInfo);
+            extractor.advance();
+        }
+
+        muxer.stop();
+        muxer.release();
+        extractor.release();
+        videoFile.delete();
+
+        System.out.println("Audio extraction complete, running faststart: " + m4aFile.getAbsolutePath());
+        Mp4FastStart.process(m4aFile);
+
+        return processSuccessfulDownloadWithPath(m4aFile.getAbsolutePath(), result);
     }
 
     HttpURLConnection openConnection(String url, boolean headRequest, long rangeStart, long rangeEnd) throws IOException {
