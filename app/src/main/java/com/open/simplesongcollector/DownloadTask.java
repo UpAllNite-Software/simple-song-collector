@@ -396,22 +396,22 @@ public class DownloadTask
             }
         }
         else {
-            if (title.contains(":"))
+            if (title.contains("-"))
             {
-                String[] parts = title.split(":");
+                String[] parts = title.split("-", 2);
                 if (parts.length > 1)
                 {
-                    title = parts[0].trim();
-                    artist = parts[1].trim();
+                    artist = parts[0].trim();
+                    title = parts[1].trim();
                 }
             }
-            else if (title.contains("-"))
+            else if (title.contains(":"))
             {
-                String[] parts = title.split("-");
+                String[] parts = title.split(":", 2);
                 if (parts.length > 1)
                 {
-                    title = parts[0].trim();
-                    artist = parts[1].trim();
+                    artist = parts[0].trim();
+                    title = parts[1].trim();
                 }
             }
 
