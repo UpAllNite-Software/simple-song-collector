@@ -5,10 +5,15 @@ plugins {
 android {
     signingConfigs {
         debug {
-            storeFile file('F:\\DevGit\\upallnitecommon\\Android KeyStores\\SimpleSongCollector.jks')
-            storePassword 'Ssc022121'
-            keyAlias 'key0'
-            keyPassword 'Ssc022121'
+            def keystoreFile = System.getProperty('os.name').toLowerCase().contains('win')
+                    ? 'F:\\DevGit\\upallnitecommon\\Android KeyStores\\SimpleSongCollector.jks'
+                    : System.getProperty('user.home') + '/dvl2/upallnitecommon/Android KeyStores/SimpleSongCollector.jks'
+            if (new File(keystoreFile).exists()) {
+                storeFile file(keystoreFile)
+                storePassword 'Ssc022121'
+                keyAlias 'key0'
+                keyPassword 'Ssc022121'
+            }
         }
     }
 
@@ -55,7 +60,7 @@ android {
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.0.4'
 
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation 'com.github.teamnewpipe:NewPipeExtractor:6992806323864d353c90ae180fa79bf3d98f07c8'
 
     implementation ('org.mozilla:rhino') {

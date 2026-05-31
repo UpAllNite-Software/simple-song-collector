@@ -34,9 +34,6 @@ import org.schabi.newpipe.extractor.stream.Description;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
-import android.media.MediaMuxer;
 import org.schabi.newpipe.streams.Mp4FromDashWriter;
 import org.schabi.newpipe.streams.io.SharpStream;
 
@@ -513,9 +510,8 @@ public class DownloadTask
         }
         dlConn.getInputStream().close();
 
-        System.out.println("Video download complete, extracting audio track");
+        System.out.println("Video download complete, extracting audio with FFmpeg");
 
-        // Extract audio track from MP4 using MediaExtractor + MediaMuxer
         String fileName = streamInfo.getName();
         String nameUnique = streamInfo.getUploaderName();
         if (nameUnique != null && nameUnique.length() > 0) {
@@ -545,56 +541,19 @@ public class DownloadTask
             m4aFile.delete();
         }
 
-        MediaExtractor extractor = new MediaExtractor();
-        extractor.setDataSource(videoFile.getAbsolutePath());
+        // Extract audio track using FFmpeg — handles all codecs correctly including HE-AAC
+        String command = String.format("-i \"%s\" -vn -acodec copy -movflags faststart \"%s\"",
+                videoFile.getAbsolutePath(), m4aFile.getAbsolutePath());
+        System.out.println("FFmpeg command: " + command);
 
-        int audioTrackIndex = -1;
-        for (int i = 0; i < extractor.getTrackCount(); i++) {
-            MediaFormat format = extractor.getTrackFormat(i);
-            String mime = format.getString(MediaFormat.KEY_MIME);
-            System.out.println("  Track " + i + ": " + mime);
-            if (mime != null && mime.startsWith("audio/")) {
-                audioTrackIndex = i;
-                break;
-            }
-        }
-
-        if (audioTrackIndex < 0) {
-            videoFile.delete();
-            throw new Exception("No audio track found in video stream");
-        }
-
-        extractor.selectTrack(audioTrackIndex);
-        MediaFormat audioFormat = extractor.getTrackFormat(audioTrackIndex);
-
-        MediaMuxer muxer = new MediaMuxer(m4aFile.getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-        int outputTrackIndex = muxer.addTrack(audioFormat);
-        muxer.start();
-
-        java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1024 * 1024);
-        android.media.MediaCodec.BufferInfo bufferInfo = new android.media.MediaCodec.BufferInfo();
-
-        while (true) {
-            int sampleSize = extractor.readSampleData(buffer, 0);
-            if (sampleSize < 0) break;
-
-            bufferInfo.offset = 0;
-            bufferInfo.size = sampleSize;
-            bufferInfo.presentationTimeUs = extractor.getSampleTime();
-            bufferInfo.flags = (extractor.getSampleFlags() & MediaExtractor.SAMPLE_FLAG_SYNC) != 0
-                    ? android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME : 0;
-
-            muxer.writeSampleData(outputTrackIndex, buffer, bufferInfo);
-            extractor.advance();
-        }
-
-        muxer.stop();
-        muxer.release();
-        extractor.release();
+        com.arthenica.ffmpegkit.FFmpegSession session = com.arthenica.ffmpegkit.FFmpegKit.execute(command);
         videoFile.delete();
 
-        System.out.println("Audio extraction complete, running faststart: " + m4aFile.getAbsolutePath());
-        Mp4FastStart.process(m4aFile);
+        if (!com.arthenica.ffmpegkit.ReturnCode.isSuccess(session.getReturnCode())) {
+            throw new Exception("FFmpeg audio extraction failed: " + session.getFailStackTrace());
+        }
+
+        System.out.println("Audio extraction complete: " + m4aFile.getAbsolutePath());
 
         return processSuccessfulDownloadWithPath(m4aFile.getAbsolutePath(), result);
     }
