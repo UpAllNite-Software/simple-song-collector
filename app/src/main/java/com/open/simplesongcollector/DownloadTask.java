@@ -80,6 +80,16 @@ public class DownloadTask
 
     public LiveData<Integer> getDownloadProgress() { return downloadProgress; }
 
+    private static String decodeHtmlEntities(String text) {
+        if (text == null) return null;
+        return text.replace("&apos;", "'")
+                   .replace("&amp;", "&")
+                   .replace("&lt;", "<")
+                   .replace("&gt;", ">")
+                   .replace("&quot;", "\"")
+                   .replace("&#39;", "'");
+    }
+
     private static boolean isValidFilenameChar(char c) {
         if ((0x00 <= c && c <= 0x1f)) {
             return false;
@@ -366,8 +376,8 @@ public class DownloadTask
     private Uri processSuccessfulDownloadWithPath(@NonNull String m4aFilePath, @NonNull YouTubeSearchResult result) throws TagException, ReadOnlyFileException, CannotReadException, InvalidAudioFrameException, IOException, CannotWriteException, InterruptedException
     {
 
-        String title = streamInfo.getName();
-        String artist = streamInfo.getUploaderName();
+        String title = decodeHtmlEntities(streamInfo.getName());
+        String artist = decodeHtmlEntities(streamInfo.getUploaderName());
         artist = artist.replace(" - Topic","");
         String album = null;
 
@@ -383,12 +393,12 @@ public class DownloadTask
                 String[] parts = contentLines[2].split("·");
                 if (parts.length > 1)
                 {
-                    title = parts[0].trim();
-                    artist = parts[1].trim();
+                    title = decodeHtmlEntities(parts[0].trim());
+                    artist = decodeHtmlEntities(parts[1].trim());
                 }
                 if (contentLines.length > 4)
                 {
-                    album = contentLines[4].trim();
+                    album = decodeHtmlEntities(contentLines[4].trim());
                 }
             }
         }
@@ -542,7 +552,7 @@ public class DownloadTask
         }
 
         // Extract audio track using FFmpeg — handles all codecs correctly including HE-AAC
-        String command = String.format("-i \"%s\" -vn -acodec copy -movflags faststart \"%s\"",
+        String command = String.format("-y -i \"%s\" -vn -acodec copy -movflags faststart \"%s\"",
                 videoFile.getAbsolutePath(), m4aFile.getAbsolutePath());
         System.out.println("FFmpeg command: " + command);
 

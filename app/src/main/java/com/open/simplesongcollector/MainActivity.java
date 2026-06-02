@@ -318,8 +318,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        // Menu hidden — YouTube Music search is currently broken in the extractor.
-        //getMenuInflater().inflate(R.menu.menu_scrolling, menu);
+        getMenuInflater().inflate(R.menu.menu_scrolling, menu);
         return true;
     }
 

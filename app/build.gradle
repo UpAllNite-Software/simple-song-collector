@@ -61,7 +61,7 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.0.4'
 
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
-    implementation 'com.github.teamnewpipe:NewPipeExtractor:6992806323864d353c90ae180fa79bf3d98f07c8'
+    implementation 'com.github.UpAllNite-Software:NewPipeExtractor:58ed44bd7ab2271d744eb027c74f0a97e7200079'
 
     implementation ('org.mozilla:rhino') {
         version {
@@ -78,7 +78,9 @@ dependencies {
 
     implementation 'com.google.android.material:material:1.3.0'
 
-    implementation 'com.github.TeamNewPipe:nanojson:c7a6c1c08d16b6d5ecded34758e6415e07be2166'
+    implementation ('com.github.TeamNewPipe:nanojson:c7a6c1c08d16b6d5ecded34758e6415e07be2166') {
+        exclude group: 'ch.randelshofer', module: 'fastdoubleparser'
+    }
     implementation 'com.google.android.exoplayer:exoplayer-core:2.18.7'
     implementation 'com.google.android.exoplayer:exoplayer:2.18.7'
 

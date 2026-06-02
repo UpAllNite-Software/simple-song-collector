@@ -21,8 +21,7 @@ public class Globals
 
         String defaultValue = "music_songs";
 
-        //the music search is currently broken so use default 
-        String result = "videos";//sharedPref.getString(key,defaultValue);
+        String result = sharedPref.getString(key,defaultValue);
 
         return result;
 

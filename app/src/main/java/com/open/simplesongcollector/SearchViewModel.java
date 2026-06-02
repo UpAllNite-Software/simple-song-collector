@@ -1,6 +1,7 @@
 package com.open.simplesongcollector;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -90,6 +91,12 @@ public class SearchViewModel extends ViewModel
 
     public void handleResult(@NonNull final SearchInfo result)
     {
+        for (Throwable t : result.getErrors()) {
+            Log.e("SearchViewModel", "Search error: " + t.getMessage(), t);
+        }
+        if (result.getRelatedItems().isEmpty() && !result.getErrors().isEmpty()) {
+            Log.e("SearchViewModel", "Search returned no results with " + result.getErrors().size() + " errors");
+        }
         searchInfo.postValue(result);
     }
 
