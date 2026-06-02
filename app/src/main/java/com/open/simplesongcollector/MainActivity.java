@@ -318,9 +318,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_scrolling, menu);
-
+        // Menu hidden — YouTube Music search is currently broken in the extractor.
+        //getMenuInflater().inflate(R.menu.menu_scrolling, menu);
         return true;
     }
 
